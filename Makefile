@@ -1,4 +1,15 @@
 GHIDRA_PATH =
+UNAME_S = $(shell uname -s)
+
+ifeq ($(UNAME_S),Linux)
+    CONFIG_DIR = ${HOME}/.config/cwe_checker
+	DATA_DIR = ${HOME}/.local/share/cwe_checker
+endif
+
+ifeq ($(UNAME_S),Darwin)
+    CONFIG_DIR = "${HOME}/Library/Application Support/cwe_checker"
+	DATA_DIR = "${HOME}/Library/Application Support/cwe_checker"
+endif
 
 .PHONY: all clean test uninstall docker
 all:
