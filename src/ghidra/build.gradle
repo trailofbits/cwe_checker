@@ -45,8 +45,7 @@ dependencies {
 sourceSets {
 	main {
 		java {
-			srcDirs = ['ghidra_scripts']
-			include '*.java'
+			srcDirs 'p_code_extractor'
 		}
 	}
 }
