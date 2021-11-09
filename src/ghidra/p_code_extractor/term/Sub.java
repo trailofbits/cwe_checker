@@ -15,18 +15,46 @@ public class Sub {
     @SerializedName("calling_convention")
     private String callingConvention;
 
+    @SerializedName("formals")
+    private ArrayList<Arg> formals;
+
+    @SerializedName("local_vars")
+    private ArrayList<Arg> lvars;
+
     public Sub() {
     }
 
-    public Sub(String name, AddressSetView addresses) {
+    public Sub(String name, AddressSetView addresses, ArrayList<Arg> formals, ArrayList<Arg> lvars) {
         this.setName(name);
         this.setAddresses(addresses);
+        this.setFormals(formals);
+        this.setLvars(lvars);
     }
 
-    public Sub(String name, ArrayList<Term<Blk>> blocks, AddressSetView addresses) {
+    public Sub(String name, ArrayList<Term<Blk>> blocks, AddressSetView addresses, ArrayList<Arg> formals,
+            ArrayList<Arg> lvars) {
         this.setName(name);
         this.setBlocks(blocks);
         this.setAddresses(addresses);
+        this.setFormals(formals);
+        this.setLvars(lvars);
+
+    }
+
+    public ArrayList<Arg> getFormals() {
+        return formals;
+    }
+
+    public void setFormals(ArrayList<Arg> formals) {
+        this.formals = formals;
+    }
+
+    public ArrayList<Arg> getLvars() {
+        return lvars;
+    }
+
+    public void setLvars(ArrayList<Arg> lvars) {
+        this.lvars = lvars;
     }
 
     public String getName() {
