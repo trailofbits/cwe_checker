@@ -319,6 +319,40 @@ pub struct Arg {
     pub intent: ArgIntent,
 }
 
+impl Arg {
+    pub fn into_ir_arg(&self, stack_pointer: &Variable) -> IrArg {
+        let ir_arg = if let Some(var) = self.var.clone() {
+            IrArg::Register {
+                expr: IrExpression::Var(var.into()),
+                data_type: None,
+            }
+        } else if let Some(expr) = self.location.clone() {
+            if expr.mnemonic == ExpressionType::LOAD {
+                let offset = i64::from_str_radix(
+                    expr.input0
+                        .clone()
+                        .unwrap()
+                        .address
+                        .unwrap()
+                        .trim_start_matches("0x"),
+                    16,
+                )
+                .unwrap();
+                IrArg::Stack {
+                    address: IrExpression::Var(stack_pointer.clone().into()).plus_const(offset),
+                    size: expr.input0.unwrap().size,
+                    data_type: None,
+                }
+            } else {
+                panic!()
+            }
+        } else {
+            panic!()
+        };
+        ir_arg
+    }
+}
+
 /// The intent (input or output) of a function argument.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone)]
 #[allow(clippy::upper_case_acronyms)]
@@ -341,6 +375,8 @@ pub struct Sub {
 
     /// The calling convention used (as reported by Ghidra, i.e. this may not be correct).
     pub calling_convention: Option<String>,
+    pub formals: Vec<Arg>,
+    pub locals: Vec<Arg>,
 }
 
 impl Term<Sub> {
@@ -535,34 +571,7 @@ impl ExternSymbol {
             );
         }
         for arg in symbol.arguments.iter() {
-            let ir_arg = if let Some(var) = arg.var.clone() {
-                IrArg::Register {
-                    expr: IrExpression::Var(var.into()),
-                    data_type: None,
-                }
-            } else if let Some(expr) = arg.location.clone() {
-                if expr.mnemonic == ExpressionType::LOAD {
-                    let offset = i64::from_str_radix(
-                        expr.input0
-                            .clone()
-                            .unwrap()
-                            .address
-                            .unwrap()
-                            .trim_start_matches("0x"),
-                        16,
-                    )
-                    .unwrap();
-                    IrArg::Stack {
-                        address: IrExpression::Var(stack_pointer.clone().into()).plus_const(offset),
-                        size: expr.input0.unwrap().size,
-                        data_type: None,
-                    }
-                } else {
-                    panic!()
-                }
-            } else {
-                panic!()
-            };
+            let ir_arg = arg.into_ir_arg(stack_pointer);
             match arg.intent {
                 ArgIntent::INPUT => parameters.push(ir_arg),
                 ArgIntent::OUTPUT => return_values.push(ir_arg),
