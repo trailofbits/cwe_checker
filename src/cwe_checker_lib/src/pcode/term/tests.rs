@@ -117,7 +117,9 @@ impl Setup {
                     },
                     "term": {
                         "name": "sub_name",
-                        "blocks": []
+                        "blocks": [],
+                        "formals": [],
+                        "locals": []
                     }
                     }
                     "#,
@@ -539,7 +541,16 @@ fn arg_deserialization() {
 fn sub_deserialization() {
     let setup = Setup::new();
     let sub_term: Term<Sub> = setup.sub_t.clone();
-    let _: Term<IrSub> = sub_term.into_ir_sub_term(ByteSize::new(8));
+    let _: Term<IrSub> = sub_term.into_ir_sub_term(
+        &Variable {
+            name: Some("RSP".to_owned()),
+            address: None,
+            value: None,
+            size: ByteSize::new(8),
+            is_virtual: false,
+        },
+        ByteSize::new(8),
+    );
     let sub_term: Term<Sub> = serde_json::from_str(
         r#"
           {
@@ -570,7 +581,9 @@ fn sub_deserialization() {
                       "jmps": []
                   }
                 }
-              ]
+              ],
+              "formals": [],
+              "locals": []
           }
           }
           "#,
@@ -578,7 +591,16 @@ fn sub_deserialization() {
     .unwrap();
     // Example has special case where the starting block has to be corrected
     assert!(sub_term.tid.address != sub_term.term.blocks[0].tid.address);
-    let ir_sub: Term<IrSub> = sub_term.into_ir_sub_term(ByteSize::new(8));
+    let ir_sub: Term<IrSub> = sub_term.into_ir_sub_term(
+        &Variable {
+            name: Some("RSP".to_owned()),
+            address: None,
+            value: None,
+            size: ByteSize::new(8),
+            is_virtual: false,
+        },
+        ByteSize::new(8),
+    );
     assert_eq!(ir_sub.tid.address, ir_sub.term.blocks[0].tid.address);
 }
 

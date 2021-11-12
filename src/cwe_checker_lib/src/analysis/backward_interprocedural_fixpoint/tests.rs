@@ -90,6 +90,7 @@ fn mock_program() -> Term<Program> {
             name: "sub1".to_string(),
             blocks: vec![sub1_blk1, sub1_blk2],
             calling_convention: None,
+            ..Default::default()
         },
     };
     let cond_jump = Jmp::CBranch {
@@ -126,6 +127,7 @@ fn mock_program() -> Term<Program> {
             name: "sub2".to_string(),
             blocks: vec![sub2_blk1, sub2_blk2],
             calling_convention: None,
+            ..Default::default()
         },
     };
     let program = Term {

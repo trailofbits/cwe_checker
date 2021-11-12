@@ -21,6 +21,18 @@ pub struct Sub {
     pub formal_rets: Vec<Arg>,
 }
 
+impl Default for Sub {
+    fn default() -> Self {
+        Sub {
+            name: "".to_owned(),
+            blocks: vec![],
+            formal_args: vec![],
+            formal_rets: vec![],
+            calling_convention: None,
+        }
+    }
+}
+
 /// A parameter or return argument of a function.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone)]
 pub enum Arg {

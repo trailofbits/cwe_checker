@@ -233,6 +233,7 @@ mod tests {
                 name: sub_name.to_string(),
                 blocks,
                 calling_convention: None,
+                ..Default::default()
             },
         }
     }

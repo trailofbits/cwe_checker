@@ -79,7 +79,6 @@ fn mock_context() -> Context<'static> {
 
     mock_context
 }
-
 #[test]
 fn context_problem_implementation() {
     use crate::analysis::forward_interprocedural_fixpoint::Context as IpFpContext;
