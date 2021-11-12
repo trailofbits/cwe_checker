@@ -161,6 +161,7 @@ mod tests {
                 name: "sub".to_string(),
                 blocks: vec![block],
                 calling_convention: None,
+                ..Default::default()
             },
         };
         let mut project = Project::mock_x64();
