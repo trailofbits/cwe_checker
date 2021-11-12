@@ -22,6 +22,10 @@ impl Tid {
         }
     }
 
+    pub fn get_str_repr(&self) -> &str {
+        &self.id
+    }
+
     /// Add a suffix to the ID string and return the new `Tid`
     pub fn with_id_suffix(self, suffix: &str) -> Self {
         Tid {
