@@ -154,6 +154,8 @@ impl Project {
                         },
                     }],
                     calling_convention: None,
+                    formal_args: vec![],
+                    formal_rets: vec![],
                 },
             };
             self.program
