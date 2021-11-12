@@ -384,7 +384,11 @@ impl Term<Sub> {
     /// The conversion also repairs the order of the basic blocks in the `blocks` array of the `Sub`
     /// in the sense that the first block of the array is required to also be the function entry point
     /// after the conversion.
-    pub fn into_ir_sub_term(mut self, generic_pointer_size: ByteSize) -> Term<IrSub> {
+    pub fn into_ir_sub_term(
+        mut self,
+        stack_pointer: &Variable,
+        generic_pointer_size: ByteSize,
+    ) -> Term<IrSub> {
         // Since the intermediate representation expects that the first block of a function is its entry point,
         // we have to make sure that this actually holds.
         if !self.term.blocks.is_empty() && self.tid.address != self.term.blocks[0].tid.address {
@@ -411,12 +415,25 @@ impl Term<Sub> {
                 term: block_term.term.into_ir_blk(generic_pointer_size),
             })
             .collect();
+
+        let mut parameters = Vec::new();
+        let mut return_values = Vec::new();
+
+        for arg in self.term.formals.iter() {
+            let ir_arg = arg.into_ir_arg(stack_pointer);
+            match arg.intent {
+                ArgIntent::INPUT => parameters.push(ir_arg),
+                ArgIntent::OUTPUT => return_values.push(ir_arg),
+            }
+        }
         Term {
             tid: self.tid,
             term: IrSub {
                 name: self.term.name,
                 blocks,
                 calling_convention: self.term.calling_convention,
+                formal_args: parameters,
+                formal_rets: return_values,
             },
         }
     }
@@ -624,7 +641,12 @@ impl Program {
         let subs = self
             .subs
             .into_iter()
-            .map(|sub| (sub.tid.clone(), sub.into_ir_sub_term(stack_pointer.size)))
+            .map(|sub| {
+                (
+                    sub.tid.clone(),
+                    sub.into_ir_sub_term(stack_pointer, stack_pointer.size),
+                )
+            })
             .collect();
         let extern_symbols = self
             .extern_symbols

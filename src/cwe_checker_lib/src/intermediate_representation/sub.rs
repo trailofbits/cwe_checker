@@ -15,6 +15,10 @@ pub struct Sub {
     pub blocks: Vec<Term<Blk>>,
     /// The calling convention used to call if known
     pub calling_convention: Option<String>,
+
+    pub formal_args: Vec<Arg>,
+
+    pub formal_rets: Vec<Arg>,
 }
 
 /// A parameter or return argument of a function.
@@ -208,6 +212,8 @@ mod tests {
                     name: name.to_string(),
                     blocks: Vec::new(),
                     calling_convention: None,
+                    formal_args: Vec::new(),
+                    formal_rets: Vec::new(),
                 },
             }
         }
