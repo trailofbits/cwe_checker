@@ -18,7 +18,7 @@ public class Sub {
     @SerializedName("formals")
     private ArrayList<Arg> formals;
 
-    @SerializedName("local_vars")
+    @SerializedName("locals")
     private ArrayList<Arg> lvars;
 
     public Sub() {
