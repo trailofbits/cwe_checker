@@ -358,7 +358,6 @@ fn get_project_from_ghidra(
                 .arg("-processor") // Provide the processor type ID, for which the binary was compiled.
                 .arg(bare_metal_config.processor_id);
         }
-
         let output = match ghidra_command.output() // Execute the command and catch its output.
         {
             Ok(output) => output,
