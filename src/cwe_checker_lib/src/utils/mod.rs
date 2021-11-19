@@ -6,6 +6,8 @@ pub mod graph_utils;
 pub mod log;
 pub mod symbol_utils;
 
+use goblin::mach::Mach;
+
 use crate::prelude::*;
 
 /// Get the contents of a configuration file.
@@ -38,6 +40,14 @@ pub fn get_binary_base_address(binary: &[u8]) -> Result<u64, Error> {
                     // The loadable segments have to occur in order in the program header table.
                     // So the start address of the first loadable segment is the base offset of the binary.
                     return Ok(vm_range.start as u64);
+                }
+            }
+            Err(anyhow!("No loadable segment bounds found."))
+        }
+        Object::Mach(Mach::Binary(mach_file)) => {
+            for seg in mach_file.segments.iter() {
+                if seg.filesize != 0 {
+                    return Ok(seg.vmaddr as u64);
                 }
             }
             Err(anyhow!("No loadable segment bounds found."))
