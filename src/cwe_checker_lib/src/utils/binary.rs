@@ -4,6 +4,8 @@ use crate::intermediate_representation::BinOpType;
 use crate::intermediate_representation::BitvectorExtended;
 use crate::prelude::*;
 use goblin::elf;
+use goblin::mach;
+use goblin::mach::segment::Segment;
 use goblin::pe;
 use goblin::Object;
 
@@ -118,6 +120,26 @@ impl MemorySegment {
         }
     }
 
+    pub fn from_macho_segment(seg: &Segment, binary: &[u8]) -> MemorySegment {
+        let read_flag = (seg.initprot & 0x01) != 0;
+        let write_flag = (seg.initprot & 0x02) != 0;
+        let execute_flag = (seg.initprot & 0x04) != 0;
+
+        let mut bytes = binary[seg.fileoff as usize..seg.filesize as usize].to_vec();
+
+        if seg.vmsize > seg.filesize {
+            // The additional memory space must be filled with null bytes.
+            bytes.resize(seg.vmsize as usize, 0u8);
+        }
+        MemorySegment {
+            bytes,
+            base_address: seg.vmaddr,
+            read_flag,
+            write_flag,
+            execute_flag,
+        }
+    }
+
     /// Generate a segment with the given `base_address` and content given by `binary`.
     /// The segment is readable, writeable and executable, its size equals the size of `binary`.
     pub fn from_bare_metal_file(binary: &[u8], base_address: u64) -> MemorySegment {
@@ -161,6 +183,17 @@ impl RuntimeMemoryImage {
         let parsed_object = Object::parse(binary)?;
 
         match parsed_object {
+            Object::Mach(mach::Mach::Binary(mach_file)) => {
+                let mut memory_segments = Vec::new();
+                for seg in mach_file.segments.iter() {
+                    memory_segments.push(MemorySegment::from_macho_segment(seg, binary));
+                }
+
+                Ok(RuntimeMemoryImage {
+                    memory_segments,
+                    is_little_endian: mach_file.little_endian,
+                })
+            }
             Object::Elf(elf_file) => {
                 let mut memory_segments = Vec::new();
                 for header in elf_file.program_headers.iter() {
