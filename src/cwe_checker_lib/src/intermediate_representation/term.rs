@@ -13,6 +13,12 @@ pub struct Tid {
 }
 
 impl Tid {
+    /// Generates a Tid from an id and an address. This is inherently unsafe but we need to deserialize from protobuf, maybe we can encapsulate that implementation in here.
+    /// But I'm not sure protobuf belongs here.
+    pub fn create(id: String, address: String) -> Tid {
+        Tid { id, address }
+    }
+
     /// Generate a new term identifier with the given ID string
     /// and with unknown address.
     pub fn new<T: ToString>(val: T) -> Tid {
