@@ -320,6 +320,7 @@ pub struct Arg {
 }
 
 impl Arg {
+    /// Converts a pcode argument into an IR argument.
     pub fn into_ir_arg(&self, stack_pointer: &Variable) -> IrArg {
         let ir_arg = if let Some(var) = self.var.clone() {
             IrArg::Register {
@@ -375,7 +376,11 @@ pub struct Sub {
 
     /// The calling convention used (as reported by Ghidra, i.e. this may not be correct).
     pub calling_convention: Option<String>,
+
+    /// Formal in and out params.
     pub formals: Vec<Arg>,
+
+    /// Local variables.
     pub locals: Vec<Arg>,
 }
 
