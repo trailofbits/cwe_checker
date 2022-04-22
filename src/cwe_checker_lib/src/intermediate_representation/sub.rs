@@ -16,8 +16,10 @@ pub struct Sub {
     /// The calling convention used to call if known
     pub calling_convention: Option<String>,
 
+    /// The formal in parameters
     pub formal_args: Vec<Arg>,
 
+    /// The formal out params.
     pub formal_rets: Vec<Arg>,
 }
 

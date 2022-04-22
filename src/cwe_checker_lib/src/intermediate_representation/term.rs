@@ -28,6 +28,7 @@ impl Tid {
         }
     }
 
+    /// Retreives the string representation of this tids identifier. Should be unique with respect to all terms.
     pub fn get_str_repr(&self) -> &str {
         &self.id
     }
