@@ -43,16 +43,16 @@ public class TermCreator {
      *          and its entry address.
      */
     public static Term<Sub> createSubTerm(Function func) {
-        Sub subInTerm = new Sub(func.getName(), func.getBody());
-        if (func.getCallingConvention() != null) {
-            subInTerm.setCallingConvention(func.getCallingConvention().toString());
-        }
-       
         var params = ExternSymbolCreator.createArguments(func);
         var locals = ExternSymbolCreator.createLocals(func);
 
-        return new Term<Sub>(HelperFunctions.functionEntryPoints.get(func.getEntryPoint().toString()),
-                new Sub(func.getName(), func.getBody(), params, locals));
+        Term<Sub> subInTerm = new Term<Sub>(HelperFunctions.functionEntryPoints.get(func.getEntryPoint().toString()),
+        new Sub(func.getName(), func.getBody(), params, locals));
+        if (func.getCallingConvention() != null) {
+            subInTerm.getTerm().setCallingConvention(func.getCallingConvention().toString());
+        }
+
+        return subInTerm;
     }
 
     /**
