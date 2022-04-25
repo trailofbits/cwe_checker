@@ -1,4 +1,4 @@
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::usize;
 
 use super::{Expression, ExpressionType, RegisterProperties, Variable};
@@ -10,6 +10,7 @@ use crate::intermediate_representation::DatatypeProperties;
 use crate::intermediate_representation::Def as IrDef;
 use crate::intermediate_representation::Expression as IrExpression;
 use crate::intermediate_representation::ExternSymbol as IrExternSymbol;
+use crate::intermediate_representation::GlobalVariable as IrGlobal;
 use crate::intermediate_representation::Jmp as IrJmp;
 use crate::intermediate_representation::Program as IrProgram;
 use crate::intermediate_representation::Project as IrProject;
@@ -611,6 +612,25 @@ impl ExternSymbol {
     }
 }
 
+/// GlobalVariables with a base address, extracted from ghidra references
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone)]
+pub struct GlobalVariable {
+    base_address: String,
+}
+
+impl Term<GlobalVariable> {
+    fn into_ir_global_term(self) -> Term<IrGlobal> {
+        let ibase = u64::from_str_radix(&self.term.base_address, 16).unwrap();
+
+        Term {
+            tid: self.tid,
+            term: IrGlobal {
+                base_address: ibase,
+            },
+        }
+    }
+}
+
 /// The program struct containing all information about the binary
 /// except for CPU-architecture-related information.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone)]
@@ -625,6 +645,8 @@ pub struct Program {
     ///
     /// Note that Ghidra may add an offset to the image base address as reported by the binary itself.
     pub image_base: String,
+
+    pub global_variables: Vec<Term<GlobalVariable>>,
 }
 
 impl Program {
@@ -664,11 +686,22 @@ impl Program {
             .collect();
         let address_base_offset =
             u64::from_str_radix(&self.image_base, 16).unwrap() - binary_base_address;
+
+        let global_variables: BTreeMap<u64, Term<IrGlobal>> = self
+            .global_variables
+            .into_iter()
+            .map(|global| {
+                let glob = global.into_ir_global_term();
+                (glob.term.base_address, glob)
+            })
+            .collect();
+
         IrProgram {
             subs,
             extern_symbols,
             entry_points: self.entry_points.into_iter().collect(),
             address_base_offset,
+            global_variables,
         }
     }
 }

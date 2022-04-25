@@ -29,7 +29,8 @@ impl Setup {
                         "subs": [],
                         "extern_symbols": [],
                         "entry_points":[],
-                        "image_base": "10000"
+                        "image_base": "10000",
+                        "global_variables": []
                       }
                     },
                     "stack_pointer_register": {
@@ -667,7 +668,8 @@ fn program_deserialization() {
                 "subs": [],
                 "extern_symbols": [],
                 "entry_points":[],
-                "image_base": "10000"
+                "image_base": "10000",
+                "global_variables": []
             }
             }
             "#,
