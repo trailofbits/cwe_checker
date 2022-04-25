@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import com.google.gson.annotations.SerializedName;
 
 import symbol.ExternSymbol;
+import symbol.GlobalVariable;
 
 public class Program {
 
@@ -16,6 +17,9 @@ public class Program {
     private ArrayList<Tid> entryPoints;
     @SerializedName("image_base")
     private String imageBase;
+
+    @SerializedName("global_variables")
+    private ArrayList<Term<GlobalVariable>> globals;
 
     public Program() {
     }
@@ -41,6 +45,11 @@ public class Program {
 
     public void addSub(Term<Sub> sub) {
         this.subs.add(sub);
+    }
+
+
+    public void setGlobals(ArrayList<Term<GlobalVariable>> globals) {
+        this.globals = globals;
     }
 
     public ArrayList<ExternSymbol> getExternSymbols() {

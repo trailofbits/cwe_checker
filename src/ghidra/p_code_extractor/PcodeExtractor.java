@@ -12,6 +12,7 @@ import internal.TermCreator;
 import internal.HelperFunctions;
 import symbol.ExternSymbol;
 import symbol.ExternSymbolCreator;
+import symbol.GlobalVariable;
 import serializer.Serializer;
 import ghidra.app.script.GhidraScript;
 import ghidra.program.model.block.CodeBlock;
@@ -30,6 +31,7 @@ import ghidra.program.model.listing.VariableStorage;
 import ghidra.program.model.pcode.PcodeOp;
 import ghidra.program.util.VarnodeContext;
 import ghidra.util.exception.CancelledException;
+import ghidra.program.model.address.AddressSet;
 
 public class PcodeExtractor extends GhidraScript {
 
@@ -53,7 +55,7 @@ public class PcodeExtractor extends GhidraScript {
         ExternSymbolCreator.createExternalSymbolMap(TermCreator.symTab);
         program = iterateFunctions(simpleBM, listing, program);
         program.getTerm().setExternSymbols(new ArrayList<ExternSymbol>(ExternSymbolCreator.externalSymbolMap.values()));
-
+        program.getTerm().setGlobals(this.collectGlobals());
         String jsonPath = getScriptArgs()[0];
         Serializer ser = new Serializer(project, jsonPath);
         ser.serializeProject();
@@ -89,6 +91,35 @@ public class PcodeExtractor extends GhidraScript {
         }
 
         return program;
+    }
+
+    protected ArrayList<Term<GlobalVariable>> collectGlobals() {
+        var prog = HelperFunctions.ghidraProgram;
+        var ref_man = prog.getReferenceManager();
+        var symb_tab = prog.getSymbolTable();
+        ArrayList<Term<GlobalVariable>> tot_vars = new ArrayList<>();
+        for (var blk : prog.getMemory().getBlocks()) {
+            if (blk.isExecute()) {
+                var addrs = new AddressSet(blk.getStart(), blk.getEnd());
+                var ref_source_iter = ref_man.getReferenceSourceIterator(addrs, true);
+                while (ref_source_iter.hasNext()) {
+                    var curr_src_addr = ref_source_iter.next();
+                    for (var ref: ref_man.getReferencesFrom(curr_src_addr)) {
+                        if (ref.isMemoryReference() && ref.getReferenceType().isData()) {
+                            var symb = symb_tab.getPrimarySymbol(ref.getToAddress());
+                            if (symb != null) {
+                                var base_address = symb.getAddress().toString();
+                                var name = symb.getName();
+                                var tid = new Tid(String.format("glb_%s_%s", base_address, name), base_address);
+                                tot_vars.add(new Term<GlobalVariable>(tid, new GlobalVariable(base_address)));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return tot_vars;
     }
 
 
