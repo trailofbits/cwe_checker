@@ -647,6 +647,7 @@ pub struct Program {
     /// Note that Ghidra may add an offset to the image base address as reported by the binary itself.
     pub image_base: String,
 
+    /// The global variables as detected by ghidra.
     pub global_variables: Vec<Term<GlobalVariable>>,
 }
 
