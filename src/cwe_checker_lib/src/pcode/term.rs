@@ -615,6 +615,7 @@ impl ExternSymbol {
 /// GlobalVariables with a base address, extracted from ghidra references
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone)]
 pub struct GlobalVariable {
+    /// The lowest address of the variable in hex.
     base_address: String,
 }
 

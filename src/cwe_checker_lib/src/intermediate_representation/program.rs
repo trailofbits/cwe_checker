@@ -2,8 +2,11 @@ use super::{Blk, ExternSymbol, Sub};
 use crate::prelude::*;
 use std::collections::{BTreeMap, BTreeSet};
 
+/// Global variables from ghidra dont generally have a size so we only collect their base address
+/// then work from there.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct GlobalVariable {
+    /// The base, lowest, address of the variable.
     pub base_address: u64,
 }
 
@@ -27,6 +30,7 @@ pub struct Program {
     pub address_base_offset: u64,
 
     // TODO(Ian): apint doesnt implement ord
+    /// Maps base addresses to gvar terms.
     pub global_variables: BTreeMap<u64, Term<GlobalVariable>>,
 }
 
