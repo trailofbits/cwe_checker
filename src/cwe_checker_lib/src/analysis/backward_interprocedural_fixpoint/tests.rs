@@ -137,6 +137,7 @@ fn mock_program() -> Term<Program> {
             extern_symbols: BTreeMap::new(),
             entry_points: BTreeSet::new(),
             address_base_offset: 0,
+            global_variables: BTreeMap::new(),
         },
     };
     program
