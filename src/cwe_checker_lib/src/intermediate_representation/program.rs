@@ -2,6 +2,14 @@ use super::{Blk, ExternSymbol, Sub};
 use crate::prelude::*;
 use std::collections::{BTreeMap, BTreeSet};
 
+/// Global variables from ghidra dont generally have a size so we only collect their base address
+/// then work from there.
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
+pub struct GlobalVariable {
+    /// The base, lowest, address of the variable.
+    pub base_address: u64,
+}
+
 /// The `Program` structure represents a disassembled binary.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct Program {
@@ -20,6 +28,10 @@ pub struct Program {
     /// Thus addresses as specified by the binary and addresses as reported by Ghidra may differ by a constant offset,
     /// which is stored in this value.
     pub address_base_offset: u64,
+
+    // TODO(Ian): apint doesnt implement ord
+    /// Maps base addresses to gvar terms.
+    pub global_variables: BTreeMap<u64, Term<GlobalVariable>>,
 }
 
 impl Program {
@@ -47,6 +59,7 @@ mod tests {
                 extern_symbols: BTreeMap::from_iter(a),
                 entry_points: BTreeSet::new(),
                 address_base_offset: 0x1000u64,
+                global_variables: BTreeMap::new(),
             }
         }
         /// Returns Program with malloc, free and other_function
