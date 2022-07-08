@@ -97,6 +97,7 @@ public class PcodeExtractor extends GhidraScript {
         var prog = HelperFunctions.ghidraProgram;
         var ref_man = prog.getReferenceManager();
         var symb_tab = prog.getSymbolTable();
+        AddressSet seen_globals = new AddressSet();
         ArrayList<Term<GlobalVariable>> tot_vars = new ArrayList<>();
         for (var blk : prog.getMemory().getBlocks()) {
             if (blk.isExecute()) {
@@ -107,7 +108,8 @@ public class PcodeExtractor extends GhidraScript {
                     for (var ref: ref_man.getReferencesFrom(curr_src_addr)) {
                         if (ref.isMemoryReference() && ref.getReferenceType().isData()) {
                             var symb = symb_tab.getPrimarySymbol(ref.getToAddress());
-                            if (symb != null) {
+                            if (symb != null && !addrs.contains(symb.getAddress())) {
+                                addrs.add(symb.getAddress());
                                 var base_address = symb.getAddress().toString();
                                 var name = symb.getName();
                                 var tid = new Tid(String.format("glb_%s_%s", base_address, name), base_address);
