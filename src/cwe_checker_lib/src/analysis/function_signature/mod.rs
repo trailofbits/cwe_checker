@@ -44,12 +44,14 @@ mod access_pattern;
 pub use access_pattern::AccessPattern;
 pub mod stubs;
 
+use super::fixpoint::UncheckedNodeHandling;
+
 /// Generate the computation object for the fixpoint computation
 /// and set the node values for all function entry nodes.
 fn generate_fixpoint_computation<'a>(
     project: &'a Project,
     graph: &'a Graph,
-) -> Computation<GeneralizedContext<'a, Context<'a>>> {
+) -> Computation<GeneralizedContext<'a, Context<'a>>, UncheckedNodeHandling> {
     let context = Context::new(project, graph);
     let mut computation = create_computation(context, None);
     // Set the node values for all function entry nodes.
@@ -88,7 +90,7 @@ fn generate_fixpoint_computation<'a>(
 fn extract_fn_signatures_from_fixpoint<'a>(
     project: &'a Project,
     graph: &'a Graph,
-    fixpoint: Computation<GeneralizedContext<'a, Context<'a>>>,
+    fixpoint: Computation<GeneralizedContext<'a, Context<'a>>, UncheckedNodeHandling>,
 ) -> BTreeMap<Tid, FunctionSignature> {
     let mut fn_sig_map: BTreeMap<Tid, FunctionSignature> = project
         .program

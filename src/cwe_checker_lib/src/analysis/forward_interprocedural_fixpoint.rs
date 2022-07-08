@@ -9,7 +9,9 @@
 //! Use it to construct a `Computation` object.
 //! The `Computation` object provides the necessary methods for the actual fixpoint computation.
 
+use super::fixpoint::CheckedNodeHandling;
 use super::fixpoint::Context as GeneralFPContext;
+use super::fixpoint::UncheckedNodeHandling;
 use super::graph::*;
 use super::interprocedural_fixpoint_generic::*;
 use crate::intermediate_representation::*;
@@ -262,7 +264,7 @@ impl<'a, T: Context<'a>> GeneralFPContext for GeneralizedContext<'a, T> {
 pub fn create_computation<'a, T: Context<'a>>(
     problem: T,
     default_value: Option<T::Value>,
-) -> super::fixpoint::Computation<GeneralizedContext<'a, T>> {
+) -> super::fixpoint::Computation<GeneralizedContext<'a, T>, UncheckedNodeHandling> {
     let generalized_problem = GeneralizedContext::new(problem);
     super::fixpoint::Computation::new(generalized_problem, default_value.map(NodeValue::Value))
 }
@@ -276,10 +278,22 @@ pub fn create_computation<'a, T: Context<'a>>(
 pub fn create_computation_with_alternate_worklist_order<'a, T: Context<'a>>(
     problem: T,
     default_value: Option<T::Value>,
-) -> super::fixpoint::Computation<GeneralizedContext<'a, T>> {
+) -> super::fixpoint::Computation<GeneralizedContext<'a, T>, UncheckedNodeHandling> {
     let generalized_problem = GeneralizedContext::new(problem);
     super::fixpoint::Computation::new_with_alternate_worklist_order(
         generalized_problem,
         default_value.map(NodeValue::Value),
     )
+}
+
+/// Generate a new computation from the corresponding context and an optional default value for nodes.
+pub fn create_checked_computation<'a, T: Context<'a>>(
+    problem: T,
+    default_value: Option<T::Value>,
+) -> super::fixpoint::Computation<GeneralizedContext<'a, T>, CheckedNodeHandling>
+where
+    T::Value: PartialOrd,
+{
+    let generalized_problem = GeneralizedContext::new(problem);
+    super::fixpoint::Computation::new(generalized_problem, default_value.map(NodeValue::Value))
 }

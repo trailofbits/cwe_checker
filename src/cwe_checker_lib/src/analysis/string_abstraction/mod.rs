@@ -15,7 +15,9 @@ use crate::{
 use self::state::State;
 
 use super::{
-    fixpoint::Computation, forward_interprocedural_fixpoint::GeneralizedContext, graph::Graph,
+    fixpoint::{Computation, UncheckedNodeHandling},
+    forward_interprocedural_fixpoint::GeneralizedContext,
+    graph::Graph,
     interprocedural_fixpoint_generic::NodeValue,
     pointer_inference::PointerInference as PointerInferenceComputation,
 };
@@ -39,7 +41,7 @@ pub struct Config {
 
 /// A wrapper struct for the string abstraction computation object.
 pub struct StringAbstraction<'a, T: AbstractDomain + DomainInsertion + HasTop + Eq + From<String>> {
-    computation: Computation<GeneralizedContext<'a, Context<'a, T>>>,
+    computation: Computation<GeneralizedContext<'a, Context<'a, T>>, UncheckedNodeHandling>,
 }
 
 impl<'a, T: AbstractDomain + DomainInsertion + HasTop + Eq + From<String>>
@@ -100,7 +102,9 @@ impl<'a, T: AbstractDomain + DomainInsertion + HasTop + Eq + From<String>>
     }
 
     /// Get the string abstraction computation.
-    pub fn get_computation(&self) -> &Computation<GeneralizedContext<'a, Context<'a, T>>> {
+    pub fn get_computation(
+        &self,
+    ) -> &Computation<GeneralizedContext<'a, Context<'a, T>>, UncheckedNodeHandling> {
         &self.computation
     }
 

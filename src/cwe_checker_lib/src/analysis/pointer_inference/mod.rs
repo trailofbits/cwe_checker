@@ -24,7 +24,7 @@
 //!
 //! See the `Config` struct for configurable analysis parameters.
 
-use super::fixpoint::Computation;
+use super::fixpoint::{Computation, UncheckedNodeHandling};
 use super::forward_interprocedural_fixpoint::GeneralizedContext;
 use super::interprocedural_fixpoint_generic::NodeValue;
 use crate::abstract_domain::{AbstractIdentifier, DataDomain, IntervalDomain, SizedDomain};
@@ -75,7 +75,7 @@ pub struct Config {
 /// Also contains different analysis results computed through the fixpoint computation including generated log messages.
 pub struct PointerInference<'a> {
     /// The pointer inference fixpoint computation object.
-    computation: Computation<GeneralizedContext<'a, Context<'a>>>,
+    computation: Computation<GeneralizedContext<'a, Context<'a>>, UncheckedNodeHandling>,
     /// A sender channel that can be used to collect logs in the corresponding log thread.
     log_collector: crossbeam_channel::Sender<LogThreadMsg>,
     /// The log messages and CWE warnings that have been generated during the pointer inference analysis.

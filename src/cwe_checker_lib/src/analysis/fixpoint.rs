@@ -64,6 +64,29 @@ pub trait Context {
     fn update_edge(&self, value: &Self::NodeValue, edge: EdgeIndex) -> Option<Self::NodeValue>;
 }
 
+pub trait NodeHandler<T: Context>: Sized {
+    fn set_node_value(cont: &mut Computation<T, Self>, node: NodeIndex, value: T::NodeValue) {
+        cont.set_node_value(node, value)
+    }
+}
+
+pub struct UncheckedNodeHandling;
+
+impl<T: Context> NodeHandler<T> for UncheckedNodeHandling {}
+
+pub struct CheckedNodeHandling;
+impl<T: Context> NodeHandler<T> for CheckedNodeHandling
+where
+    T::NodeValue: PartialOrd,
+{
+    fn set_node_value(cont: &mut Computation<T, Self>, node: NodeIndex, value: T::NodeValue) {
+        if let Some(prev) = cont.node_values.get(&node) {
+            assert!(prev.le(&value))
+        }
+        cont.set_node_value(node, value)
+    }
+}
+
 /// The computation struct contains an intermediate result of a fixpoint computation
 /// and provides methods for continuing the fixpoint computation
 /// or extracting the (intermediate or final) results.
@@ -83,7 +106,7 @@ pub trait Context {
 ///     // ...
 /// };
 /// ```
-pub struct Computation<T: Context> {
+pub struct Computation<T: Context, N: NodeHandler<T>> {
     /// The context object needed for the fixpoint computation
     fp_context: T,
     /// maps a node index to its priority (higher priority nodes get stabilized first)
@@ -94,9 +117,10 @@ pub struct Computation<T: Context> {
     worklist: BTreeSet<usize>,
     /// The internal map containing all known node values.
     node_values: FnvHashMap<NodeIndex, T::NodeValue>,
+    ph: std::marker::PhantomData<N>,
 }
 
-impl<T: Context> Computation<T> {
+impl<T: Context, N: NodeHandler<T>> Computation<T, N> {
     /// Create a new fixpoint computation from a fixpoint problem, the corresponding graph
     /// and a default value for all nodes if one should exists.
     pub fn new(fp_context: T, default_value: Option<T::NodeValue>) -> Self {
@@ -138,6 +162,7 @@ impl<T: Context> Computation<T> {
             priority_to_node_list: priority_sorted_nodes,
             worklist,
             node_values,
+            ph: std::marker::PhantomData,
         }
     }
 
@@ -183,10 +208,10 @@ impl<T: Context> Computation<T> {
         if let Some(old_value) = self.node_values.get(&node) {
             let merged_value = self.fp_context.merge(&value, old_value);
             if merged_value != *old_value {
-                self.set_node_value(node, merged_value);
+                N::set_node_value(self, node, merged_value);
             }
         } else {
-            self.set_node_value(node, value);
+            N::set_node_value(self, node, value);
         }
     }
 
@@ -324,7 +349,8 @@ mod tests {
         }
         graph.add_edge(NodeIndex::new(100), NodeIndex::new(0), 0);
 
-        let mut solution = Computation::new(FPContext { graph }, None);
+        let mut solution: Computation<FPContext, UncheckedNodeHandling> =
+            Computation::new(FPContext { graph }, None);
         solution.set_node_value(NodeIndex::new(0), 0);
         solution.compute_with_max_steps(20);
 
@@ -345,7 +371,8 @@ mod tests {
             graph.add_edge(NodeIndex::new(i * 10), NodeIndex::new(i * 10 + 5), 0);
         }
 
-        let mut solution = Computation::new(FPContext { graph }, Some(100));
+        let mut solution: Computation<FPContext, UncheckedNodeHandling> =
+            Computation::new(FPContext { graph }, Some(100));
         solution.set_node_value(NodeIndex::new(10), 0);
         solution.compute_with_max_steps(20);
 
@@ -366,7 +393,7 @@ mod tests {
             graph.add_edge(NodeIndex::new(i), NodeIndex::new(19), 1);
         }
         graph.add_edge(NodeIndex::new(19), NodeIndex::new(20), 1);
-        let mut computation = Computation::new(
+        let mut computation: Computation<FPContext, UncheckedNodeHandling> = Computation::new(
             FPContext {
                 graph: graph.clone(),
             },
@@ -392,7 +419,7 @@ mod tests {
             Some(NodeIndex::new(20))
         );
 
-        let mut computation =
+        let mut computation: Computation<FPContext, UncheckedNodeHandling> =
             Computation::new_with_alternate_worklist_order(FPContext { graph }, Some(1));
         assert!(computation.node_priority_list[19] < computation.node_priority_list[0]);
         assert!(computation.node_priority_list[1] > computation.node_priority_list[20]);
