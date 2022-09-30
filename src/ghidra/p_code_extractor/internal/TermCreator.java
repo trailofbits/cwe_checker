@@ -209,8 +209,16 @@ public class TermCreator {
     public static Variable createVariable(Varnode node) {
         Variable var = new Variable();
         if (node.isRegister()) {
-            var.setName(HelperFunctions.context.getRegister(node).getName());
-            var.setIsVirtual(false);
+            var reg = HelperFunctions.context.getRegister(node);
+            // some arches (Specifically Aarch64 neon) have accesses into registers that arent defined in the space so we fake a register and emit a warning
+            if (reg == null) {
+                System.out.println("WARNING: Definition created with respect to an access to an undefined reg, faking a virtual register.");
+                var.setName("ERROR_REG");
+                var.setIsVirtual(true);
+            } else {
+                var.setName(reg.getName());
+                var.setIsVirtual(false);
+            }
         } else if (node.isUnique()) {
             var.setName(HelperFunctions.renameVirtualRegister(node.getAddress().toString()));
             var.setIsVirtual(true);
