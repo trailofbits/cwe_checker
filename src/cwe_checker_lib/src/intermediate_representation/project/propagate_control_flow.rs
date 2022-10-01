@@ -302,6 +302,8 @@ pub mod tests {
         let sub = Sub {
             name: "sub".to_string(),
             calling_convention: None,
+            formal_args: vec![],
+            formal_rets: vec![],
             blocks: vec![
                 mock_condition_block("cond_blk_1", "def_blk_1", "cond_blk_2"),
                 mock_block_with_defs("def_blk_1", "cond_blk_2"),

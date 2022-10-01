@@ -2,7 +2,6 @@
 
 use crate::prelude::*;
 use goblin::elf;
-use goblin::mach;
 use goblin::mach::segment::Segment;
 use goblin::pe;
 
