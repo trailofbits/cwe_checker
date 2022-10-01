@@ -64,16 +64,25 @@ pub trait Context {
     fn update_edge(&self, value: &Self::NodeValue, edge: EdgeIndex) -> Option<Self::NodeValue>;
 }
 
+/// A node handler parameterizes the behavior of a [Computation] by the behavior that occurs
+/// When merging a node value into an old value for a given NodeIndex.
 pub trait NodeHandler<T: Context>: Sized {
+    /// Sets the node in a given computation to the given value. Provides an opportunity to
+    /// interpose on the node value.
     fn set_node_value(cont: &mut Computation<T, Self>, node: NodeIndex, value: T::NodeValue) {
         cont.set_node_value(node, value)
     }
 }
 
+/// Unchecked handling of merges that does not do anything but set the node index to the new
+/// merged value.
 pub struct UncheckedNodeHandling;
 
 impl<T: Context> NodeHandler<T> for UncheckedNodeHandling {}
 
+/// Checked node handling where the new values is checked against the old value
+/// to ensure that the previous value is <= to the new value.
+/// This check monitors the client analysis for monotonicity.
 pub struct CheckedNodeHandling;
 impl<T: Context> NodeHandler<T> for CheckedNodeHandling
 where
