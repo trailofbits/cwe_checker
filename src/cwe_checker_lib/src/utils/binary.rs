@@ -2,7 +2,6 @@
 
 use crate::prelude::*;
 use goblin::elf;
-use goblin::mach::segment::Segment;
 use goblin::pe;
 
 /// Contains all information parsed out of the bare metal configuration JSON file.
@@ -106,27 +105,6 @@ impl MemorySegment {
             read_flag: (section_header.characteristics & 0x40000000) != 0,
             write_flag: (section_header.characteristics & 0x80000000) != 0,
             execute_flag: (section_header.characteristics & 0x20000000) != 0,
-        }
-    }
-
-    pub fn from_macho_segment(seg: &Segment, binary: &[u8]) -> MemorySegment {
-        let read_flag = (seg.initprot & 0x01) != 0;
-        let write_flag = (seg.initprot & 0x02) != 0;
-        let execute_flag = (seg.initprot & 0x04) != 0;
-        let mut bytes =
-            binary[seg.fileoff as usize..seg.fileoff as usize + seg.filesize as usize].to_vec();
-
-        if seg.vmsize > seg.filesize {
-            // The additional memory space must be filled with null bytes.
-            bytes.resize(seg.vmsize as usize, 0u8);
-        }
-
-        MemorySegment {
-            bytes,
-            base_address: seg.vmaddr,
-            read_flag,
-            write_flag,
-            execute_flag,
         }
     }
 
