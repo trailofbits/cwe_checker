@@ -32,9 +32,14 @@ import ghidra.program.model.pcode.PcodeOp;
 import ghidra.program.util.VarnodeContext;
 import ghidra.util.exception.CancelledException;
 import ghidra.program.model.address.AddressSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Objects;
 
 public class PcodeExtractor extends GhidraScript {
 
+    private Optional<List<Function>> flist = Optional.empty();
+    public static final String FUNCTION_LIST_NAME="TARGET_FUNCTION_LIST";
     /**
      * 
      * Entry point to Ghidra Script. Calls serializer after processing of Terms.
@@ -49,6 +54,14 @@ public class PcodeExtractor extends GhidraScript {
         Listing listing = currentProgram.getListing();
 
         setFunctionEntryPoints();
+
+        var flist_env = this.state.getEnvironmentVar​(PcodeExtractor.FUNCTION_LIST_NAME);
+        if(Objects.nonNull(flist_env) && flist_env instanceof List) {
+            flist = Optional.of((List<Function>) flist_env);
+        } else {
+            flist = Optional.empty();
+        }
+
         TermCreator.symTab = currentProgram.getSymbolTable();
         Term<Program> program = TermCreator.createProgramTerm();
         Project project = createProject(program);
@@ -57,6 +70,9 @@ public class PcodeExtractor extends GhidraScript {
         program.getTerm().setExternSymbols(new ArrayList<ExternSymbol>(ExternSymbolCreator.externalSymbolMap.values()));
         program.getTerm().setGlobals(this.collectGlobals());
         String jsonPath = getScriptArgs()[0];
+
+
+
         Serializer ser = new Serializer(project, jsonPath);
         ser.serializeProject();
 
@@ -74,7 +90,11 @@ public class PcodeExtractor extends GhidraScript {
      * Iterates over functions to create sub terms and calls the block iterator to add all block terms to each subroutine.
      */
     protected Term<Program> iterateFunctions(SimpleBlockModel simpleBM, Listing listing, Term<Program> program) {
-        FunctionIterator functions = HelperFunctions.funcMan.getFunctions(true);
+        
+        java.lang.Iterable<Function> functions = HelperFunctions.funcMan.getFunctions(true);
+        if (this.flist.isPresent()) {
+            functions = flist.get();
+        }
         for (Function func : functions) {
             if(ExternSymbolCreator.externalSymbolMap.containsKey(func.getName())) {
                 ArrayList<String> addresses = ExternSymbolCreator.externalSymbolMap.get(func.getName()).getAddresses();
