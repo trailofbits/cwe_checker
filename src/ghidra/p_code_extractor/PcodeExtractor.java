@@ -104,7 +104,7 @@ public class PcodeExtractor extends GhidraScript {
                     program.getTerm().addSub(currentSub);
                 }
             } else {
-                if (!currentSub.isThunk()) {
+                if (!func.isThunk()) {
                     Term<Sub> currentSub = TermCreator.createSubTerm(func);
                     currentSub.getTerm().setBlocks(iterateBlocks(currentSub, simpleBM, listing));
                     program.getTerm().addSub(currentSub);

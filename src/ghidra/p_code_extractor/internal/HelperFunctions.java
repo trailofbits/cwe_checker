@@ -78,7 +78,7 @@ public final class HelperFunctions {
     public static String parseCallTargetAddress(PcodeOp op) {
         if(op.getInput(0).isAddress()) {
             // apply thunk override if exists
-            var addr_res = applyThunkToTargetAddress(op.getInput(0).getAddress())
+            var addr_res = applyThunkToTargetAddress(op.getInput(0).getAddress());
             return addr_res.toString();
         }
         return null;
