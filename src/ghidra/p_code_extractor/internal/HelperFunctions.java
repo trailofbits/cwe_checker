@@ -61,7 +61,7 @@ public final class HelperFunctions {
         if (Objects.nonNull(func) && func.isThunk()) {
             var target = func.getThunkedFunction(true);
             if (Objects.nonNull(target)) {
-                target.getEntryPoint();
+                return target.getEntryPoint();
             }
         }
 
