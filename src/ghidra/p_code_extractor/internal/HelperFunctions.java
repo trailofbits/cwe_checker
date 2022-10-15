@@ -57,9 +57,9 @@ public final class HelperFunctions {
     }
 
     public static Address applyThunkToTargetAddress(Address entrypoint) {
-        var func = HelperFunctions.funcMang.getFunctionAt(entrypoint);
+        var func = HelperFunctions.funcMan.getFunctionAt(entrypoint);
         if (Objects.nonNull(func) && func.isThunk()) {
-            var target = func.getThunkedFUnction(true);
+            var target = func.getThunkedFunction(true);
             if (Objects.nonNull(target)) {
                 target.getEntryPoint();
             }
