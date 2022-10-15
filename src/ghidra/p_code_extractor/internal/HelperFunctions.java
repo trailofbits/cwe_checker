@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import java.util.Objects;
 import bil.DatatypeProperties;
 import bil.RegisterProperties;
 import bil.Variable;
@@ -56,6 +56,18 @@ public final class HelperFunctions {
         );
     }
 
+    public static Address applyThunkToTargetAddress(Address entrypoint) {
+        var func = HelperFunctions.funcMang.getFunctionAt(entrypoint);
+        if (Objects.nonNull(func) && func.isThunk()) {
+            var target = func.getThunkedFUnction(true);
+            if (Objects.nonNull(target)) {
+                target.getEntryPoint();
+            }
+        }
+
+        return entrypoint;
+    }
+
     /**
      * 
      * @param op: call pcode operation
@@ -65,7 +77,9 @@ public final class HelperFunctions {
      */
     public static String parseCallTargetAddress(PcodeOp op) {
         if(op.getInput(0).isAddress()) {
-            return op.getInput(0).getAddress().toString();
+            // apply thunk override if exists
+            var addr_res = applyThunkToTargetAddress(op.getInput(0).getAddress())
+            return addr_res.toString();
         }
         return null;
     }
