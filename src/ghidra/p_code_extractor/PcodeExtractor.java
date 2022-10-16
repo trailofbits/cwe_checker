@@ -55,7 +55,7 @@ public class PcodeExtractor extends GhidraScript {
 
         setFunctionEntryPoints();
 
-        var flist_env = this.state.getEnvironmentVar​(PcodeExtractor.FUNCTION_LIST_NAME);
+        var flist_env = this.state.getEnvironmentVar(PcodeExtractor.FUNCTION_LIST_NAME);
         if(Objects.nonNull(flist_env) && flist_env instanceof List) {
             flist = Optional.of((List<Function>) flist_env);
         } else {
