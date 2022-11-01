@@ -331,7 +331,7 @@ public class TermCreator {
         // First check whether the parsed address from the pcodeOp operation
         // is in the entry points map and if so, return the corresponding Tid.
         // This is a cheap operation
-        String targetAddress = HelperFunctions.parseCallTargetAddress(pcodeOp, this.should_resolve_thunks);
+        String targetAddress = HelperFunctions.parseCallTargetAddress(pcodeOp, TermCreator.should_resolve_thunks);
         if (HelperFunctions.functionEntryPoints.containsKey(targetAddress)) {
             return HelperFunctions.functionEntryPoints.get(targetAddress);
         }

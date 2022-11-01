@@ -57,7 +57,7 @@ public class PcodeExtractor extends GhidraScript {
 
         setFunctionEntryPoints();
 
-        this.should_resolve_stubs = Objects.isNonNull(this.state.getEnvironmentVar(PcodeExtractor.SHOULD_RESOLVE_STUBS))
+        this.should_resolve_stubs = Objects.nonNull(this.state.getEnvironmentVar(PcodeExtractor.SHOULD_RESOLVE_STUBS));
         var flist_env = this.state.getEnvironmentVar(PcodeExtractor.FUNCTION_LIST_NAME);
         if(Objects.nonNull(flist_env) && flist_env instanceof List) {
             flist = Optional.of((List<Function>) flist_env);
@@ -108,7 +108,7 @@ public class PcodeExtractor extends GhidraScript {
                     program.getTerm().addSub(currentSub);
                 }
             } else {
-                if (!func.isThunk() || !this.should_resolve_stub) {
+                if (!func.isThunk() || !this.should_resolve_stubs) {
                     Term<Sub> currentSub = TermCreator.createSubTerm(func);
                     currentSub.getTerm().setBlocks(iterateBlocks(currentSub, simpleBM, listing));
                     program.getTerm().addSub(currentSub);
