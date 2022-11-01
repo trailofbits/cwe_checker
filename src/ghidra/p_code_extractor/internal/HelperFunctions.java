@@ -75,10 +75,13 @@ public final class HelperFunctions {
      * 
      * Parses the function pointer address out of an call instruction
      */
-    public static String parseCallTargetAddress(PcodeOp op) {
+    public static String parseCallTargetAddress(PcodeOp op, boolean shouldResolveThunk) {
         if(op.getInput(0).isAddress()) {
             // apply thunk override if exists
-            var addr_res = applyThunkToTargetAddress(op.getInput(0).getAddress());
+            var addr_res = op.getInput(0).getAddress();
+            if (shouldResolveThunk) {
+                addr_res = applyThunkToTargetAddress(addr_res);
+            }
             return addr_res.toString();
         }
         return null;

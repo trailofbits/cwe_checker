@@ -40,6 +40,8 @@ public class PcodeExtractor extends GhidraScript {
 
     private Optional<List<Function>> flist = Optional.empty();
     public static final String FUNCTION_LIST_NAME="TARGET_FUNCTION_LIST";
+    public static final String SHOULD_RESOLVE_STUBS="SHOULD_RESOLVE_STUBS";
+    private boolean should_resolve_stubs = false;
     /**
      * 
      * Entry point to Ghidra Script. Calls serializer after processing of Terms.
@@ -55,6 +57,7 @@ public class PcodeExtractor extends GhidraScript {
 
         setFunctionEntryPoints();
 
+        this.should_resolve_stubs = Objects.isNonNull(this.state.getEnvironmentVar(PcodeExtractor.SHOULD_RESOLVE_STUBS))
         var flist_env = this.state.getEnvironmentVar(PcodeExtractor.FUNCTION_LIST_NAME);
         if(Objects.nonNull(flist_env) && flist_env instanceof List) {
             flist = Optional.of((List<Function>) flist_env);
@@ -63,6 +66,7 @@ public class PcodeExtractor extends GhidraScript {
         }
 
         TermCreator.symTab = currentProgram.getSymbolTable();
+        TermCreator.should_resolve_thunks = this.should_resolve_stubs;
         Term<Program> program = TermCreator.createProgramTerm();
         Project project = createProject(program);
         ExternSymbolCreator.createExternalSymbolMap(TermCreator.symTab);
@@ -104,7 +108,7 @@ public class PcodeExtractor extends GhidraScript {
                     program.getTerm().addSub(currentSub);
                 }
             } else {
-                if (!func.isThunk()) {
+                if (!func.isThunk() || !this.should_resolve_stub) {
                     Term<Sub> currentSub = TermCreator.createSubTerm(func);
                     currentSub.getTerm().setBlocks(iterateBlocks(currentSub, simpleBM, listing));
                     program.getTerm().addSub(currentSub);
