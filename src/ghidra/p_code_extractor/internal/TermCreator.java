@@ -17,7 +17,8 @@ import term.*;
 public class TermCreator {
 
     public static SymbolTable symTab;
-
+    public static boolean should_resolve_thunks;
+    
     // private constructor for non-instantiable classes
     private TermCreator() {
         throw new UnsupportedOperationException();
@@ -330,7 +331,7 @@ public class TermCreator {
         // First check whether the parsed address from the pcodeOp operation
         // is in the entry points map and if so, return the corresponding Tid.
         // This is a cheap operation
-        String targetAddress = HelperFunctions.parseCallTargetAddress(pcodeOp);
+        String targetAddress = HelperFunctions.parseCallTargetAddress(pcodeOp, TermCreator.should_resolve_thunks);
         if (HelperFunctions.functionEntryPoints.containsKey(targetAddress)) {
             return HelperFunctions.functionEntryPoints.get(targetAddress);
         }

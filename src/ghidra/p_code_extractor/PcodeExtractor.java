@@ -32,9 +32,16 @@ import ghidra.program.model.pcode.PcodeOp;
 import ghidra.program.util.VarnodeContext;
 import ghidra.util.exception.CancelledException;
 import ghidra.program.model.address.AddressSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Objects;
 
 public class PcodeExtractor extends GhidraScript {
 
+    private Optional<List<Function>> flist = Optional.empty();
+    public static final String FUNCTION_LIST_NAME="TARGET_FUNCTION_LIST";
+    public static final String SHOULD_RESOLVE_STUBS="SHOULD_RESOLVE_STUBS";
+    private boolean should_resolve_stubs = false;
     /**
      * 
      * Entry point to Ghidra Script. Calls serializer after processing of Terms.
@@ -49,7 +56,17 @@ public class PcodeExtractor extends GhidraScript {
         Listing listing = currentProgram.getListing();
 
         setFunctionEntryPoints();
+
+        this.should_resolve_stubs = Objects.nonNull(this.state.getEnvironmentVar(PcodeExtractor.SHOULD_RESOLVE_STUBS));
+        var flist_env = this.state.getEnvironmentVar(PcodeExtractor.FUNCTION_LIST_NAME);
+        if(Objects.nonNull(flist_env) && flist_env instanceof List) {
+            flist = Optional.of((List<Function>) flist_env);
+        } else {
+            flist = Optional.empty();
+        }
+
         TermCreator.symTab = currentProgram.getSymbolTable();
+        TermCreator.should_resolve_thunks = this.should_resolve_stubs;
         Term<Program> program = TermCreator.createProgramTerm();
         Project project = createProject(program);
         ExternSymbolCreator.createExternalSymbolMap(TermCreator.symTab);
@@ -57,6 +74,9 @@ public class PcodeExtractor extends GhidraScript {
         program.getTerm().setExternSymbols(new ArrayList<ExternSymbol>(ExternSymbolCreator.externalSymbolMap.values()));
         program.getTerm().setGlobals(this.collectGlobals());
         String jsonPath = getScriptArgs()[0];
+
+
+
         Serializer ser = new Serializer(project, jsonPath);
         ser.serializeProject();
 
@@ -74,7 +94,11 @@ public class PcodeExtractor extends GhidraScript {
      * Iterates over functions to create sub terms and calls the block iterator to add all block terms to each subroutine.
      */
     protected Term<Program> iterateFunctions(SimpleBlockModel simpleBM, Listing listing, Term<Program> program) {
-        FunctionIterator functions = HelperFunctions.funcMan.getFunctions(true);
+        
+        java.lang.Iterable<Function> functions = HelperFunctions.funcMan.getFunctions(true);
+        if (this.flist.isPresent()) {
+            functions = flist.get();
+        }
         for (Function func : functions) {
             if(ExternSymbolCreator.externalSymbolMap.containsKey(func.getName())) {
                 ArrayList<String> addresses = ExternSymbolCreator.externalSymbolMap.get(func.getName()).getAddresses();
@@ -84,9 +108,11 @@ public class PcodeExtractor extends GhidraScript {
                     program.getTerm().addSub(currentSub);
                 }
             } else {
-                Term<Sub> currentSub = TermCreator.createSubTerm(func);
-                currentSub.getTerm().setBlocks(iterateBlocks(currentSub, simpleBM, listing));
-                program.getTerm().addSub(currentSub);
+                if (!func.isThunk() || !this.should_resolve_stubs) {
+                    Term<Sub> currentSub = TermCreator.createSubTerm(func);
+                    currentSub.getTerm().setBlocks(iterateBlocks(currentSub, simpleBM, listing));
+                    program.getTerm().addSub(currentSub);
+                }
             }
         }
 
@@ -306,8 +332,10 @@ public class PcodeExtractor extends GhidraScript {
     protected void setFunctionEntryPoints() {
         // Add internal function addresses
         for(Function func : HelperFunctions.funcMan.getFunctions(true)) {
-            String address = func.getEntryPoint().toString();
-            HelperFunctions.functionEntryPoints.put(address, new Tid(String.format("sub_%s", address), address));
+            if (!func.isThunk() || !this.should_resolve_stubs) {
+                String address = func.getEntryPoint().toString();
+                HelperFunctions.functionEntryPoints.put(address, new Tid(String.format("sub_%s", address), address));
+            }
         }
 
         // Add thunk addresses for external functions
