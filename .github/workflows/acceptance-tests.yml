@@ -1,6 +1,6 @@
 name: Acceptance tests
 
-on: 
+on:
   push:
     branches:
       - master
@@ -8,13 +8,12 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  GHIDRA_RELEASE_TAG: Ghidra_10.2.2_build
-  GHIDRA_VERSION: ghidra_10.2.2_PUBLIC_20221115
+  GHIDRA_RELEASE_TAG: Ghidra_11.0.1_build
+  GHIDRA_VERSION: ghidra_11.0.1_PUBLIC_20240130
 
-jobs: 
- 
+jobs:
   acceptance-tests:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v2
