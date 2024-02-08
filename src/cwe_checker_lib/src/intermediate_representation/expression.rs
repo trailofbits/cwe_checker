@@ -212,7 +212,7 @@ impl Expression {
 
     /// This function checks for sub registers in pcode instruction and casts them into
     /// SUBPIECE expressions with the base register as argument. It also checks whether
-    /// the given Term<Def> has a output sub register and if so, casts it into its
+    /// the given `Term<Def>` has a output sub register and if so, casts it into its
     /// corresponding base register.
     /// Lastly, it checks whether the following pcode instruction is a zero extension of
     /// the currently overwritten sub register. If so, the zero extension is wrapped around
